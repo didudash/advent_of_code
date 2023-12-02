@@ -1,0 +1,10 @@
+--pycache__/ 
+*.pyc
+
+# Python virtual environments
+env/
+venv/
+.venv/
+
+# puzzle input 
+.txt
