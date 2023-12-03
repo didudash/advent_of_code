@@ -7,4 +7,4 @@ venv/
 .venv/
 
 # puzzle input 
-.txt
+*.txt
