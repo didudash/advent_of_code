@@ -1,9 +1,14 @@
+# Rework based in the solution of: Fadi88
+# https://raw.githubusercontent.com/Fadi88/AoC/refs/heads/master/2024/day05/code.py
+
+from collections import defaultdict
+
+
 def read_inputs(file_path):
     with open(file_path, "r") as file:
         content = file.read().strip()
 
     ordering_rules, page_updates = content.split("\n\n")
-
     ordering_rules = [
         tuple(map(int, pair.split("|"))) for pair in ordering_rules.split("\n")
     ]
@@ -14,65 +19,60 @@ def read_inputs(file_path):
     return ordering_rules, page_updates
 
 
-def is_ordered(input_list, position_map):
-    positions = [position_map.get(num, None) for num in input_list]
-    positions = [pos for pos in positions if pos is not None]
-    return positions == sorted(positions)
-
-
-def update_position_map(pairs):
-    position_map = {}
-    for a, b in pairs:
-        if a not in position_map and b not in position_map:
-            position_map[a] = len(position_map)
-            position_map[b] = len(position_map)
-        elif a not in position_map:
-            position_map[a] = position_map[b]
-            for key in position_map:
-                if position_map[key] >= position_map[a]:
-                    position_map[key] += 1
-        elif b not in position_map:
-            position_map[b] = position_map[a] + 1
-        elif position_map[a] > position_map[b]:
-            for key, value in position_map.items():
-                if position_map[a] <= value < position_map[b]:
-                    position_map[key] += 1
-            position_map[a] = position_map[b] - 1
-
-    min_position = min(position_map.values(), default=0)
-    if min_position < 0:
-        for key in position_map:
-            position_map[key] -= min_position
-
+def update_position_map(ordering_rules):
+    position_map = defaultdict(list)
+    for a, b in ordering_rules:
+        position_map[a].append(b)
     return position_map
+
+
+def is_ordered(input_list, position_map):
+    for i, page in enumerate(input_list):
+        if not all(page2 in position_map[page] for page2 in input_list[i + 1 :]):
+            return False
+    return True
 
 
 def find_middle(input_list):
     n = len(input_list)
     return (
-        None
-        if n == 0
-        else (
-            input_list[n // 2]
-            if n % 2 == 1
-            else (input_list[n // 2 - 1], input_list[n // 2])
-        )
+        input_list[n // 2]
+        if n % 2 == 1
+        else (input_list[n // 2 - 1] + input_list[n // 2]) // 2
     )
 
 
-def part_1(ordering_rules, page_updates):
+def part_1(file_path):
+    ordering_rules, page_updates = read_inputs(file_path)
+    position_map = update_position_map(ordering_rules)
 
     result = 0
-    position_map = update_position_map(ordering_rules)
-    print(position_map)
     for input_list in page_updates:
         if is_ordered(input_list, position_map):
-            middle_number = find_middle(input_list)
-            result += middle_number
+            result += find_middle(input_list)
     print(result)
 
 
-# file_path = "toy_input.txt"
+def part_2(file_path):
+    ordering_rules, page_updates = read_inputs(file_path)
+    position_map = update_position_map(ordering_rules)
+
+    result = 0
+    for input_list in page_updates:
+        if not is_ordered(input_list, position_map):
+            to_sort = set(input_list)
+            sorted_list = []
+            while to_sort:
+                for n in to_sort:
+                    if all(n2 in position_map[n] for n2 in to_sort if n2 != n):
+                        sorted_list.append(n)
+                        to_sort.remove(n)
+                        break
+            result += find_middle(sorted_list)
+    print(result)
+
+
 file_path = "puzzle_input.txt"
-ordering_rules, page_updates = read_inputs(file_path)
-part_1(ordering_rules, page_updates)
+
+part_1(file_path)
+part_2(file_path)
