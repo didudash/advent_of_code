@@ -1,56 +1,55 @@
-def parse_txt_to_grid(file_path):
+# Rework based in the solution of: i_have_no_biscuits
+# https://www.reddit.com/r/adventofcode/comments/1h689qf/comment/m0bsh3p/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+
+
+def parse_txt_to_dict(file_path):
+    """Parse the grid into a dictionary of (y, x): c."""
     with open(file_path, "r") as file:
-        return [list(line.strip()) for line in file]
+        data = file.readlines()
+    height, width = len(data), len(data[0].strip())
+    return {(y, x): data[y][x] for y in range(height) for x in range(width)}
 
 
-def is_valid(r, c, rows, cols):
-    """Is it within the grid."""
-    return 0 <= r < rows and 0 <= c < cols
+def get_candidate_sequence(grid, y, x, dy, dx, length):
+    return "".join(grid.get((y + dy * i, x + dx * i), "") for i in range(length))
 
 
-def check_sequence(start_r, start_c, sequence, rows, cols, directions):
-    """Check for the given sequence starting from a specific position."""
-    # TODO: Fix duplicates
-    for dr, dc in directions:
-        found = True
-        for k in range(len(sequence)):
-            nr, nc = start_r + dr * k, start_c + dc * k
-            if not is_valid(nr, nc, rows, cols) or grid[nr][nc] != sequence[k]:
-                found = False
-                break
-        if found:
-            return True
-    return False
+def find_target(grid, target):
+    """Find the occurrences of the target sequence in the grid."""
+    deltas = [(dy, dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1] if dy != 0 or dx != 0]
+    count = 0
+    for y, x in grid:
+        for dy, dx in deltas:
+            if get_candidate_sequence(grid, y, x, dy, dx, len(target)) == target:
+                count += 1
+    return count
 
 
-def part_1(grid):
-    word_count = 0
-    rows, cols = len(grid), len(grid[0])
-
-    directions = [
-        (0, 1),  # Down
-        (1, 0),  # Right
-        (1, 1),  # Down-Right
-        (1, -1),  # Down-Left
-        (0, -1),  # Left
-        (-1, 0),  # Up
-        (-1, -1),  # Up-Right
-        (-1, 1),  # Up-Left
-    ]
-    for r in range(rows):
-        for c in range(cols):
-            if grid[r][c] == "X" and check_sequence(
-                r, c, "XMAS", rows, cols, directions
-            ):
-                word_count += 1
-            elif grid[r][c] == "S" and check_sequence(
-                r, c, "SAMX", rows, cols, directions
-            ):
-                word_count += 1
-
-    print(word_count)
+def find_mas_x(grid):
+    """Find occurrences of MAS 'X' in the grid."""
+    count = 0
+    for (y, x), char in grid.items():
+        if char == "A":
+            lr = grid.get((y - 1, x - 1), "") + grid.get((y + 1, x + 1), "")
+            rl = grid.get((y - 1, x + 1), "") + grid.get((y + 1, x - 1), "")
+            if {lr, rl} <= {"MS", "SM"}:
+                count += 1
+    return count
 
 
-file_path = "toy_input.txt"
-grid = parse_txt_to_grid(file_path)
-part_1(grid)
+def part_1(file_path):
+    grid = parse_txt_to_dict(file_path)
+    target = "XMAS"
+    count = find_target(grid, target)
+    print("Part 1:", count)
+
+
+def part_2(file_path):
+    grid = parse_txt_to_dict(file_path)
+    count = find_mas_x(grid)
+    print("Part 2:", count)
+
+
+file_path = "puzzle_input.txt"
+part_1(file_path)
+part_2(file_path)
