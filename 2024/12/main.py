@@ -1,3 +1,6 @@
+DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+
 def read_map(file_name):
     with open(file_name, "r") as file:
         return [list(line.strip()) for line in file]
@@ -16,7 +19,7 @@ def explore_region(r, c, letter, visited, rows, cols):
         visited[x][y] = True
         area += 1
 
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        for dx, dy in DIRECTIONS:
             nx, ny = x + dx, y + dy
             if 0 <= nx < rows and 0 <= ny < cols:
                 if garden_map[nx][ny] == letter and not visited[nx][ny]:
@@ -34,12 +37,11 @@ def find_regions(garden_map):
     visited = [[False] * cols for _ in range(rows)]
     regions = []
 
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     for r in range(rows):
         for c in range(cols):
             if not visited[r][c]:
                 letter = garden_map[r][c]
-                region_boundaries = {direction: set() for direction in directions}
+                region_boundaries = {direction: set() for direction in DIRECTIONS}
                 stack = [(r, c)]
                 area = 0
 
@@ -51,7 +53,7 @@ def find_regions(garden_map):
                     visited[x][y] = True
                     area += 1
 
-                    for dx, dy in directions:
+                    for dx, dy in DIRECTIONS:
                         nx, ny = x + dx, y + dy
                         if 0 <= nx < rows and 0 <= ny < cols:
                             if garden_map[nx][ny] == letter and not visited[nx][ny]:
