@@ -20,10 +20,12 @@ def read_input(file_path):
     return machines
 
 
-def solve_machine(a, b, prize):
+def solve_machine(a, b, prize, offset):
     ax, ay = a
     bx, by = b
     px, py = prize
+    px += offset
+    py += offset
 
     solutions = []
     # All combinations bounded by 100 presses each
@@ -40,13 +42,31 @@ def solve_machine(a, b, prize):
     return None
 
 
-def part_1(machines):
+def solve_machine_part_2(a, b, prize, offset):
+    """
+    Remembering linear algebra, and solving for the system of equations
+    This can also solve part_1 and there is only really one valid solution
+    instead of the cheapest one
+    """
+    ax, ay = a
+    bx, by = b
+    px, py = prize
+    px += offset
+    py += offset
+    na = (px * by - py * bx) / (ax * by - ay * bx)
+    nb = (py * ax - px * ay) / (ax * by - ay * bx)
+    if na == int(na) and nb == int(nb):
+        cost = int(3 * na + nb)
+        return cost, na, nb
+
+
+def main(machines, offset, solve_machine):
     min_total_tokens = 0
     prizes_won = 0
 
     for machine in machines:
         a, b, prize = machine
-        result = solve_machine(a, b, prize)
+        result = solve_machine(a, b, prize, offset)
         if result:
             cost, _, _ = result
             min_total_tokens += cost
@@ -55,8 +75,8 @@ def part_1(machines):
     print(min_total_tokens)
 
 
-# file_path = "toy_input.txt"
 file_path = "puzzle_input.txt"
 
 machines = read_input(file_path)
-part_1(machines)
+main(machines, 0, solve_machine)
+main(machines, 10000000000000, solve_machine_part_2)
