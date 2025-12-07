@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 def parse_input(file_path):
     with open(file_path, "r") as f:
         grid = [line.rstrip("\n") for line in f]
@@ -36,9 +39,40 @@ def part_1(data):
     return splits
 
 
+def part_2(data):
+    grid, start_col = data
+    rows, cols = len(grid), len(grid[0])
+
+    current = defaultdict(int)
+    current[(1, start_col)] = 1
+
+    timelines = 0
+
+    while current:
+        next_gen = defaultdict(int)
+
+        for (r, c), path_count in current.items():
+            if r >= rows or c < 0 or c >= cols:
+                timelines += path_count
+                continue
+
+            if grid[r][c] == "^":
+                if c > 0:
+                    next_gen[(r + 1, c - 1)] += path_count
+                if c < cols - 1:
+                    next_gen[(r + 1, c + 1)] += path_count
+            else:
+                next_gen[(r + 1, c)] += path_count
+
+        current = next_gen
+
+    return timelines
+
+
 choose = {"p": "puzzle", "t": "toy"}.get("p")
 file_path = f"{choose}_input.txt"
 
 data = parse_input(file_path)
 
 print(part_1(data))
+print(part_2(data))
